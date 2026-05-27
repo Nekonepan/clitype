@@ -26,14 +26,27 @@ A gorgeous, highly-polished terminal typing test inspired by [Monkeytype](https:
 ```bash
 git clone https://github.com/Nekonepan/clitype.git
 cd clitype
-python3 clitype.py
+make run
 ```
 
 That's it. No setup, no install.
 
+Alternatively, run directly with Python:
+```bash
+python3 clitype.py
+```
+
 ---
 
-## 🎮 Controls
+## 🛠 Make Commands
+
+```bash
+make run      # Run the typing test application
+make help     # Show available commands
+make clean    # Remove Python cache files
+```
+
+---
 
 ### Menu
 
