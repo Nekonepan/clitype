@@ -43,7 +43,8 @@ class CliType:
 
         # Menu navigation
         self.menu_row = 0
-        self.menu_items = 4
+        self.menu_items = 5
+        self.in_option_select = False
 
         # Typing session engine
         self.engine = None

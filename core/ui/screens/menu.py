@@ -1,4 +1,4 @@
-"""Menu screen for clitype."""
+"""Menu screen for clitype with selection sub-menus."""
 
 import sys
 
@@ -15,7 +15,6 @@ from core.data.constants import (
     WORD_OPTIONS,
 )
 from core.terminal.ansi import (
-    bg_color,
     bold,
     fg,
     get_terminal_size,
@@ -26,9 +25,10 @@ from core.ui.themes import THEME_KEYS, THEMES
 
 
 def draw_menu(renderer, app):
-    """Draw the configurations menu on the terminal."""
+    """Draw the new hierarchical master-detail menu on the terminal."""
     renderer.fill_background()
     rows, cols = get_terminal_size()
+    t = renderer.t
 
     # Draw logo
     logo_start_row = max(2, rows // 2 - 12)
@@ -39,130 +39,201 @@ def draw_menu(renderer, app):
     ver_row = logo_start_row + len(LOGO) + 1
     renderer.draw_centered(ver_row, f"v{VERSION}", "fg_dim")
 
-    # Separator
-    sep_row = ver_row + 1
-    sep_w = min(60, cols - 4)
-    sep_col = (cols - sep_w) // 2 + 1
-    renderer.draw_horizontal_line(sep_row, sep_col, sep_w)
-
-    # Menu options
-    menu_start = sep_row + 2
-    t = renderer.t
-
-    # Mode row
-    mode_labels = ["time", "words", "code"]
-    mode_parts = []
-    for i, m in enumerate(mode_labels):
-        if (
-            (app.mode == MODE_TIME and i == 0)
-            or (app.mode == MODE_WORDS and i == 1)
-            or (app.mode == MODE_CODE and i == 2)
-        ):
-            mode_parts.append(
-                fg(*t["accent"]) + bold() + m + reset() + renderer._bg()
-            )
-        else:
-            mode_parts.append(fg(*t["fg_dim"]) + m + reset() + renderer._bg())
-    mode_text = "  mode   " + "  │  ".join(mode_parts)
-
-    indicator = (
-        fg(*t["accent"]) + "▸ "
-        if app.menu_row == 0
-        else fg(*t["fg_dim"]) + "  "
-    )
-    move_to(menu_start, max(1, (cols - 50) // 2))
-    sys.stdout.write(renderer._bg() + indicator + mode_text + reset())
-
-    # Sub-option row (time or word count)
-    sub_row = menu_start + 2
+    # Current Selection Status Bar
+    lang_label = app.lang_labels[app.lang_idx]
+    theme_label = THEMES[THEME_KEYS[app.theme_idx]]["name"]
     if app.mode == MODE_TIME:
-        sub_labels = [f"{s}s" for s in TIME_OPTIONS]
-        sub_idx = app.time_idx
+        limit_label = f"time : {TIME_OPTIONS[app.time_idx]}s"
     elif app.mode == MODE_WORDS:
-        sub_labels = [str(w) for w in WORD_OPTIONS]
-        sub_idx = app.word_idx
+        limit_label = f"count : {WORD_OPTIONS[app.word_idx]}"
     else:
-        sub_labels = ["snippets"]
-        sub_idx = 0
+        limit_label = "type : code"
 
-    sub_parts = []
-    for i, s in enumerate(sub_labels):
-        if i == sub_idx:
-            sub_parts.append(
-                fg(*t["accent2"]) + bold() + s + reset() + renderer._bg()
+    status_text = (
+        f"mode : {app.mode}  │  {limit_label}  │  "
+        f"language : {lang_label}  │  theme : {theme_label}"
+    )
+
+    status_row = ver_row + 2
+    renderer.draw_centered(status_row - 1, "═" * min(70, cols - 4), "border")
+    renderer.draw_centered(status_row, status_text, "accent2", bold_on=True)
+    renderer.draw_centered(status_row + 1, "═" * min(70, cols - 4), "border")
+
+    # Start drawing options
+    menu_start_row = status_row + 3
+
+    # Define menu rows:
+    # 0: Mode, 1: Time/Count, 2: Language, 3: Theme, 4: Start Test
+    for row_idx in range(5):
+        # We calculate the row's terminal position dynamically.
+        # If we have entered an option submenu (app.in_option_select is True)
+        # and that row is row_idx, it takes an extra line for option list.
+        draw_row = menu_start_row + row_idx * 2
+        if app.in_option_select and row_idx > app.menu_row:
+            draw_row += 1
+
+        is_active = app.menu_row == row_idx
+        is_editing = is_active and app.in_option_select
+
+        if row_idx == 4:
+            # Row 4: Start Test Row
+            if is_active:
+                header_str = (
+                    fg(*t["accent"]) + bold() + "▸ [ START TEST ]" + reset()
+                )
+            else:
+                header_str = fg(*t["fg_dim"]) + "  [ START TEST ]" + reset()
+            renderer.draw_centered(draw_row, header_str)
+            continue
+
+        # Get Category Label & Value
+        if row_idx == 0:
+            label = "mode"
+            val = app.mode
+        elif row_idx == 1:
+            label = (
+                "count"
+                if app.mode == MODE_WORDS
+                else "time"
+                if app.mode == MODE_TIME
+                else "type"
             )
+            val = (
+                f"{WORD_OPTIONS[app.word_idx]} words"
+                if app.mode == MODE_WORDS
+                else f"{TIME_OPTIONS[app.time_idx]}s"
+                if app.mode == MODE_TIME
+                else "snippets"
+            )
+        elif row_idx == 2:
+            label = "language"
+            val = lang_label.lower()
         else:
-            sub_parts.append(fg(*t["fg_dim"]) + s + reset() + renderer._bg())
-    sub_prefix = (
-        "  count  "
-        if app.mode == MODE_WORDS
-        else "  time   "
-        if app.mode == MODE_TIME
-        else "  type   "
-    )
-    sub_text = sub_prefix + "  │  ".join(sub_parts)
-    indicator2 = (
-        fg(*t["accent"]) + "▸ "
-        if app.menu_row == 1
-        else fg(*t["fg_dim"]) + "  "
-    )
-    move_to(sub_row, max(1, (cols - 50) // 2))
-    sys.stdout.write(renderer._bg() + indicator2 + sub_text + reset())
+            label = "theme"
+            val = theme_label.lower()
 
-    # Language row
-    lang_row = sub_row + 2
-    lang_parts = []
-    for i, label in enumerate(app.lang_labels):
-        if i == app.lang_idx:
-            lang_parts.append(
-                fg(*t["accent3"])
+        # Draw Category Row
+        # Format: Category Name ...... Value
+        label_col_w = 12
+        padded_label = f"{label:<{label_col_w}}"
+
+        if is_editing:
+            # Editing state: Header expanded with focus color
+            header_str = (
+                fg(*t["accent"])
                 + bold()
-                + label.lower()
+                + f"▸ {padded_label}   ( select value below )"
                 + reset()
-                + renderer._bg()
             )
-        else:
-            lang_parts.append(
-                fg(*t["fg_dim"]) + label.lower() + reset() + renderer._bg()
-            )
-    lang_text = "  lang   " + "  │  ".join(lang_parts)
-    indicator3 = (
-        fg(*t["accent"]) + "▸ "
-        if app.menu_row == 2
-        else fg(*t["fg_dim"]) + "  "
-    )
-    move_to(lang_row, max(1, (cols - 50) // 2))
-    sys.stdout.write(renderer._bg() + indicator3 + lang_text + reset())
+            renderer.draw_centered(draw_row, header_str)
 
-    # Theme row
-    theme_row = lang_row + 2
-    theme_parts = []
-    for i, tk in enumerate(THEME_KEYS):
-        tn = THEMES[tk]["name"].lower()
-        if i == app.theme_idx:
-            theme_parts.append(
-                fg(*t["accent"]) + bold() + tn + reset() + renderer._bg()
-            )
+            # Draw the submenu option items directly below it
+            options_str = ""
+            if row_idx == 0:
+                # Mode Options
+                modes = ["time", "words", "code"]
+                parts = []
+                for m in modes:
+                    if app.mode == m:
+                        parts.append(
+                            fg(*t["accent"]) + bold() + f"[ {m} ]" + reset()
+                        )
+                    else:
+                        parts.append(fg(*t["fg_dim"]) + f"  {m}  " + reset())
+                options_str = "   ".join(parts)
+
+            elif row_idx == 1:
+                # Time / Count Options
+                if app.mode == MODE_TIME:
+                    sub_labels = [f"{s}s" for s in TIME_OPTIONS]
+                    sub_idx = app.time_idx
+                elif app.mode == MODE_WORDS:
+                    sub_labels = [str(w) for w in WORD_OPTIONS]
+                    sub_idx = app.word_idx
+                else:
+                    sub_labels = ["snippets"]
+                    sub_idx = 0
+
+                parts = []
+                for i, s in enumerate(sub_labels):
+                    if i == sub_idx:
+                        parts.append(
+                            fg(*t["accent2"]) + bold() + f"[ {s} ]" + reset()
+                        )
+                    else:
+                        parts.append(fg(*t["fg_dim"]) + f"  {s}  " + reset())
+                options_str = "   ".join(parts)
+
+            elif row_idx == 2:
+                # Language Options
+                parts = []
+                for i, lang in enumerate(app.lang_labels):
+                    if i == app.lang_idx:
+                        parts.append(
+                            fg(*t["accent3"])
+                            + bold()
+                            + f"[ {lang.lower()} ]"
+                            + reset()
+                        )
+                    else:
+                        parts.append(
+                            fg(*t["fg_dim"]) + f"  {lang.lower()}  " + reset()
+                        )
+                options_str = "   ".join(parts)
+
+            elif row_idx == 3:
+                # Theme Options
+                parts = []
+                for i, tk in enumerate(THEME_KEYS):
+                    tn = THEMES[tk]["name"].lower()
+                    if i == app.theme_idx:
+                        parts.append(
+                            fg(*t["accent"]) + bold() + f"[ {tn} ]" + reset()
+                        )
+                    else:
+                        parts.append(fg(*t["fg_dim"]) + f"  {tn}  " + reset())
+                options_str = "  ".join(parts)
+
+            renderer.draw_centered(draw_row + 1, options_str)
+
         else:
-            theme_parts.append(fg(*t["fg_dim"]) + tn + reset() + renderer._bg())
-    theme_text = "  theme  " + "  │  ".join(theme_parts)
-    indicator4 = (
-        fg(*t["accent"]) + "▸ "
-        if app.menu_row == 3
-        else fg(*t["fg_dim"]) + "  "
-    )
-    move_to(theme_row, max(1, (cols - 50) // 2))
-    sys.stdout.write(renderer._bg() + indicator4 + theme_text + reset())
+            # Standard View (Collapsed):
+            # Show "Category Name   value"
+            if is_active:
+                line_str = (
+                    fg(*t["accent"])
+                    + bold()
+                    + f"▸ {padded_label}   "
+                    + fg(*t["accent2"])
+                    + f" {val} "
+                    + reset()
+                )
+            else:
+                line_str = (
+                    fg(*t["fg_dim"])
+                    + f"  {padded_label}   "
+                    + fg(*t["fg_dim"])
+                    + f" {val} "
+                    + reset()
+                )
+            renderer.draw_centered(draw_row, line_str)
 
     # Footer hints
     footer_row = rows - 2
-    hints = [
-        ("↑↓", "navigate"),
-        ("←→", "select"),
-        ("enter", "start"),
-        ("h", "history"),
-        ("q", "quit"),
-    ]
+    if app.in_option_select:
+        hints = [
+            ("←→", "change option"),
+            ("enter", "confirm & return"),
+            ("esc", "go back"),
+        ]
+    else:
+        hints = [
+            ("↑↓", "navigate categories"),
+            ("enter", "select / edit category"),
+            ("h", "history"),
+            ("q", "quit"),
+        ]
+
     hint_parts = []
     for key, desc in hints:
         hint_parts.append(
@@ -184,44 +255,56 @@ def draw_menu(renderer, app):
 
 
 def handle_menu_input(key, app):
-    """Handle keyboard input on the menu screen."""
-    if key == "UP":
-        app.menu_row = (app.menu_row - 1) % app.menu_items
-    elif key == "DOWN":
-        app.menu_row = (app.menu_row + 1) % app.menu_items
-    elif key in ("LEFT", "RIGHT"):
-        delta = 1 if key == "RIGHT" else -1
-        if app.menu_row == 0:
-            # Mode
-            modes = [MODE_TIME, MODE_WORDS, MODE_CODE]
-            idx = modes.index(app.mode)
-            idx = (idx + delta) % len(modes)
-            app.mode = modes[idx]
-            if app.mode == MODE_CODE:
-                app.lang_idx = 2
-            elif app.lang_idx == 2:
-                app.lang_idx = 0
-        elif app.menu_row == 1:
-            # Sub-option
-            if app.mode == MODE_TIME:
-                app.time_idx = (app.time_idx + delta) % len(TIME_OPTIONS)
-            elif app.mode == MODE_WORDS:
-                app.word_idx = (app.word_idx + delta) % len(WORD_OPTIONS)
-        elif app.menu_row == 2:
-            # Language
-            app.lang_idx = (app.lang_idx + delta) % len(app.lang_keys)
-            if app.lang_idx == 2:
-                app.mode = MODE_CODE
-            elif app.mode == MODE_CODE:
-                app.mode = MODE_TIME
-        elif app.menu_row == 3:
-            # Theme
-            app.theme_idx = (app.theme_idx + delta) % len(THEME_KEYS)
-            app.renderer.set_theme(THEME_KEYS[app.theme_idx])
-    elif key in ("\r", "\n"):
-        app.start_test()
-    elif key in ("h", "H"):
-        app.state = STATE_HISTORY
-    elif key in ("q", "Q"):
-        return False
+    """Handle keyboard navigation on the hierarchical select menu."""
+    if app.in_option_select:
+        # State: Submenu Active (Selecting Option Value)
+        if key in ("\r", "\n", "ESC"):
+            # Confirm and collapse
+            app.in_option_select = False
+        elif key in ("LEFT", "RIGHT"):
+            delta = 1 if key == "RIGHT" else -1
+            if app.menu_row == 0:
+                # Mode
+                modes = [MODE_TIME, MODE_WORDS, MODE_CODE]
+                idx = modes.index(app.mode)
+                idx = (idx + delta) % len(modes)
+                app.mode = modes[idx]
+                if app.mode == MODE_CODE:
+                    app.lang_idx = 2
+                elif app.lang_idx == 2:
+                    app.lang_idx = 0
+            elif app.menu_row == 1:
+                # Sub-option
+                if app.mode == MODE_TIME:
+                    app.time_idx = (app.time_idx + delta) % len(TIME_OPTIONS)
+                elif app.mode == MODE_WORDS:
+                    app.word_idx = (app.word_idx + delta) % len(WORD_OPTIONS)
+            elif app.menu_row == 2:
+                # Language
+                app.lang_idx = (app.lang_idx + delta) % len(app.lang_keys)
+                if app.lang_idx == 2:
+                    app.mode = MODE_CODE
+                elif app.mode == MODE_CODE:
+                    app.mode = MODE_TIME
+            elif app.menu_row == 3:
+                # Theme
+                app.theme_idx = (app.theme_idx + delta) % len(THEME_KEYS)
+                app.renderer.set_theme(THEME_KEYS[app.theme_idx])
+    else:
+        # State: Navigating Menu Row categories
+        if key == "UP":
+            app.menu_row = (app.menu_row - 1) % app.menu_items
+        elif key == "DOWN":
+            app.menu_row = (app.menu_row + 1) % app.menu_items
+        elif key in ("\r", "\n", "RIGHT"):
+            if app.menu_row == 4:
+                # Start Test
+                app.start_test()
+            else:
+                # Enter options select submenu
+                app.in_option_select = True
+        elif key in ("h", "H"):
+            app.state = STATE_HISTORY
+        elif key in ("q", "Q"):
+            return False
     return True
