@@ -96,6 +96,21 @@ THEMES = {
         "surface": (65, 52, 40),
         "wpm_bar": (220, 180, 120),
     },
+    "light": {
+        "name": "Light Paper",
+        "bg": (245, 245, 247),
+        "fg_dim": (140, 140, 150),
+        "fg_active": (40, 40, 45),
+        "fg_correct": (46, 125, 50),
+        "fg_incorrect": (211, 47, 47),
+        "fg_cursor": (0, 0, 0),
+        "accent": (25, 118, 210),
+        "accent2": (245, 124, 0),
+        "accent3": (123, 31, 162),
+        "border": (210, 210, 215),
+        "surface": (230, 230, 235),
+        "wpm_bar": (25, 118, 210),
+    },
 }
 
 THEME_KEYS = list(THEMES.keys())
