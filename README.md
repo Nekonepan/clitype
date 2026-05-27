@@ -1,6 +1,6 @@
 # clitype
 
-A gorgeous, highly-polished terminal typing test inspired by [Monkeytype](https://monkeytype.com) — built entirely in Python with zero dependencies.
+A gorgeous, highly-polished terminal typing test inspired by [Monkeytype](https://monkeytype.com). Built entirely in Python with zero dependencies.
 
 ![Python](https://img.shields.io/badge/python-3.6%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -10,14 +10,14 @@ A gorgeous, highly-polished terminal typing test inspired by [Monkeytype](https:
 
 ## ✨ Features
 
-- **TrueColor themes** — 6 hand-crafted color palettes (Dark, Nord, One Dark, Neon Cyan, Matrix, Retro Sepia)
-- **Multiple modes** — Timed tests (15s / 30s / 60s), word-count tests (10 / 25 / 50 words), and code snippet practice
-- **Multilingual** — English and Indonesian word lists built-in
-- **Live stats** — Real-time WPM counter and progress indicator as you type
-- **Results dashboard** — Final WPM, accuracy, raw WPM, keystroke breakdown, and a sparkline WPM-over-time graph
-- **Score history** — All your runs are saved locally; view your personal bests and track your progress
-- **Zero dependencies** — Uses only the Python standard library (`termios`, `tty`, `select`, `json`)
-- **Instant launch** — No `pip install`, no virtual environments, just run it
+- **TrueColor themes** - 6 hand-crafted color palettes (Dark, Nord, One Dark, Neon Cyan, Matrix, Retro Sepia)
+- **Multiple modes** - Timed tests (15s / 30s / 60s), word-count tests (10 / 25 / 50 words), and code snippet practice
+- **Multilingual** - English, French, Spanish, Indonesian, and Code snippet support
+- **Live stats** - Real-time WPM counter and progress indicator as you type
+- **Results dashboard** - Final WPM, accuracy, raw WPM, keystroke breakdown, and a sparkline WPM-over-time graph
+- **Score history** - All your runs are saved locally; view your personal bests and track your progress
+- **Zero dependencies** - Uses only the Python standard library (termios, tty, select, json)
+- **Instant launch** - No pip install, no virtual environments, just run it
 
 ---
 
@@ -90,11 +90,13 @@ Press `h` in the menu to view your recent runs, personal best WPM, and accuracy 
 
 ## 🌐 Languages
 
-- **English** — 200 most common words
-- **Indonesian** — 200 common everyday words
-- **Code** — 34 programming snippets (Python, JavaScript, C, HTML, CSS)
+- **English** - Common words for everyday typing
+- **French** - French vocabulary for bilingual practice
+- **Spanish** - Spanish words for polyglots
+- **Indonesian** - Indonesian words for local speakers
+- **Code** - Programming snippets (Python, JavaScript, C, HTML, CSS)
 
-More languages can be added by editing `wordlists.py`.
+New languages can be added by creating JSON files in the `languages/` directory.
 
 ---
 
@@ -102,7 +104,7 @@ More languages can be added by editing `wordlists.py`.
 
 - Python 3.6+
 - A terminal with TrueColor (24-bit) support (most modern terminals: kitty, alacritty, wezterm, GNOME Terminal, etc.)
-- Linux or macOS (uses `termios`/`tty` — not compatible with native Windows CMD)
+- Linux or macOS (uses `termios`/`tty` - not compatible with native Windows CMD)
 
 ---
 
@@ -110,10 +112,16 @@ More languages can be added by editing `wordlists.py`.
 
 ```
 clitype/
-├── clitype.py      # Main TUI engine (menu, test, results, history)
-├── wordlists.py    # Curated word lists (English, Indonesian, Code)
-├── README.md       # You are here
-└── LICENSE         # MIT License
+├── clitype.py           # Main entry point
+├── core/
+│   ├── app.py          # Main application controller
+│   ├── data/           # Constants and local history storage
+│   ├── engine/         # Typing test engine logic
+│   ├── terminal/       # Terminal I/O and ANSI control
+│   └── ui/             # UI components (renderer, screens, themes)
+├── languages/          # Language definitions (JSON format)
+├── README.md           # You are here
+└── LICENSE             # MIT License
 ```
 
 ---
@@ -121,15 +129,16 @@ clitype/
 ## 🤝 Contributing
 
 This is an open-source personal project! Feel free to:
-1. Fork it
-2. Add new languages to `wordlists.py`
-3. Create new themes in the `THEMES` dict in `clitype.py`
-4. Submit a PR
+1. Fork the repository
+2. Add new languages by creating JSON files in the `languages/` directory
+3. Create new themes in the `THEMES` dict in `core/ui/themes.py`
+4. Improve the engine or UI components in the `core/` directory
+5. Submit a pull request
 
 ---
 
 ## 📄 License
 
-MIT License — see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](LICENSE) for details.
 
 Copyright (c) 2026 Lutfan Alaudin Naja
