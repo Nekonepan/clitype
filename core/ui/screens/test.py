@@ -149,8 +149,8 @@ def draw_test(renderer, app):
                 # Record cursor position
                 cursor_row = row
                 cursor_col = text_col + ci
-                # Draw the character as untyped (dim) but without underline
-                rendered += fg(*t["fg_dim"]) + ch
+                # Draw the character with the bright cursor color so it stands out
+                rendered += fg(*t["fg_cursor"]) + ch
             else:
                 # Not yet typed
                 rendered += fg(*t["fg_dim"]) + ch
