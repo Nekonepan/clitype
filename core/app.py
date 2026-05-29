@@ -12,7 +12,7 @@ from core.data.constants import (
     STATE_TEST,
 )
 from core.engine.typing_engine import TypingEngine
-from core.terminal.ansi import reset, show_cursor
+from core.terminal.ansi import reset, show_cursor, hide_cursor
 from core.terminal.input import RawTerminal
 from core.ui.renderer import Renderer
 from core.ui.screens import (
@@ -63,6 +63,7 @@ class CliType:
                 running = True
                 while running:
                     if self.state == STATE_MENU:
+                        hide_cursor()
                         draw_menu(self.renderer, self)
                         key = term.read_key()
                         running = handle_menu_input(key, self)
@@ -74,11 +75,13 @@ class CliType:
                         running = handle_test_input(key, self)
 
                     elif self.state == STATE_RESULTS:
+                        hide_cursor()
                         draw_results(self.renderer, self)
                         key = term.read_key()
                         running = handle_results_input(key, self)
 
                     elif self.state == STATE_HISTORY:
+                        hide_cursor()
                         draw_history(self.renderer, self)
                         key = term.read_key()
                         running = handle_history_input(key, self)

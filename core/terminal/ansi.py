@@ -51,6 +51,19 @@ def show_cursor():
     sys.stdout.flush()
 
 
+def set_cursor_bar():
+    """Set the terminal cursor shape to a steady vertical bar."""
+    sys.stdout.write("\033[6 q")
+    sys.stdout.flush()
+
+
+def set_cursor_block():
+    """Set the terminal cursor shape to a steady block."""
+    sys.stdout.write("\033[2 q")
+    sys.stdout.flush()
+
+
+
 def clear_screen():
     """Clear the entire terminal screen and move cursor to top-left."""
     sys.stdout.write("\033[2J\033[H")

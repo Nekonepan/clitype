@@ -17,7 +17,9 @@ from core.terminal.ansi import (
     get_terminal_size,
     move_to,
     reset,
-    underline,
+    show_cursor,
+    set_cursor_bar,
+    hide_cursor,
 )
 from core.ui.themes import THEME_KEYS
 
@@ -144,10 +146,11 @@ def draw_test(renderer, app):
                         + r._bg()
                     )
             elif abs_idx == engine.char_idx:
-                # Cursor position — draw with underline effect
-                rendered += (
-                    fg(*t["fg_cursor"]) + underline() + ch + reset() + r._bg()
-                )
+                # Record cursor position
+                cursor_row = row
+                cursor_col = text_col + ci
+                # Draw the character as untyped (dim) but without underline
+                rendered += fg(*t["fg_dim"]) + ch
             else:
                 # Not yet typed
                 rendered += fg(*t["fg_dim"]) + ch
@@ -159,6 +162,12 @@ def draw_test(renderer, app):
     r.draw_centered(footer_row, "esc  restart   ctrl+c  quit", "fg_dim")
 
     r.flush()
+
+    # Move the real terminal cursor and show it as a bar caret
+    if 'cursor_row' in locals():
+        move_to(cursor_row, cursor_col)
+        set_cursor_bar()
+        show_cursor()
 
 
 def handle_test_input(key, app):
