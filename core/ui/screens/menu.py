@@ -17,6 +17,7 @@ from core.data.constants import (
 from core.terminal.ansi import (
     bold,
     fg,
+    bg_color,
     get_terminal_size,
     move_to,
     reset,
@@ -136,11 +137,12 @@ def draw_menu(renderer, app):
                 for m in modes:
                     if app.mode == m:
                         parts.append(
-                            fg(*t["accent"]) + bold() + f"[ {m} ]" + reset()
+                            fg(*t["accent"]) + bold() + f"[ {m} ]" + reset() + bg_color(*t["surface"])
                         )
                     else:
-                        parts.append(fg(*t["fg_dim"]) + f"  {m}  " + reset())
-                options_str = "   ".join(parts)
+                        parts.append(fg(*t["fg_dim"]) + f"  {m}  " + reset() + bg_color(*t["surface"]))
+                # Wrap the whole block in surface background with padding
+                options_str = bg_color(*t["surface"]) + "  " + "   ".join(parts) + "  " + reset()
 
             elif row_idx == 1:
                 # Time / Count Options
@@ -158,14 +160,13 @@ def draw_menu(renderer, app):
                 for i, s in enumerate(sub_labels):
                     if i == sub_idx:
                         parts.append(
-                            fg(*t["accent2"]) + bold() + f"[ {s} ]" + reset()
+                            fg(*t["accent2"]) + bold() + f"[ {s} ]" + reset() + bg_color(*t["surface"])
                         )
                     else:
-                        parts.append(fg(*t["fg_dim"]) + f"  {s}  " + reset())
-                options_str = "   ".join(parts)
+                        parts.append(fg(*t["fg_dim"]) + f"  {s}  " + reset() + bg_color(*t["surface"]))
+                options_str = bg_color(*t["surface"]) + "  " + "   ".join(parts) + "  " + reset()
 
             elif row_idx == 2:
-                # Language Options
                 parts = []
                 for i, lang in enumerate(app.lang_labels):
                     if i == app.lang_idx:
@@ -173,13 +174,13 @@ def draw_menu(renderer, app):
                             fg(*t["accent3"])
                             + bold()
                             + f"[ {lang.lower()} ]"
-                            + reset()
+                            + reset() + bg_color(*t["surface"])
                         )
                     else:
                         parts.append(
-                            fg(*t["fg_dim"]) + f"  {lang.lower()}  " + reset()
+                            fg(*t["fg_dim"]) + f"  {lang.lower()}  " + reset() + bg_color(*t["surface"])
                         )
-                options_str = "   ".join(parts)
+                options_str = bg_color(*t["surface"]) + "  " + "   ".join(parts) + "  " + reset()
 
             elif row_idx == 3:
                 # Theme Options
@@ -188,11 +189,11 @@ def draw_menu(renderer, app):
                     tn = THEMES[tk]["name"].lower()
                     if i == app.theme_idx:
                         parts.append(
-                            fg(*t["accent"]) + bold() + f"[ {tn} ]" + reset()
+                            fg(*t["accent"]) + bold() + f"[ {tn} ]" + reset() + bg_color(*t["surface"])
                         )
                     else:
-                        parts.append(fg(*t["fg_dim"]) + f"  {tn}  " + reset())
-                options_str = "  ".join(parts)
+                        parts.append(fg(*t["fg_dim"]) + f"  {tn}  " + reset() + bg_color(*t["surface"]))
+                options_str = bg_color(*t["surface"]) + "  " + "  ".join(parts) + "  " + reset()
 
             renderer.draw_centered(draw_row + 1, options_str)
 
@@ -269,9 +270,10 @@ def handle_menu_input(key, app):
                 idx = modes.index(app.mode)
                 idx = (idx + delta) % len(modes)
                 app.mode = modes[idx]
-                if app.mode == MODE_CODE:
-                    app.lang_idx = 2
-                elif app.lang_idx == 2:
+                code_idx = app.lang_keys.index("code") if "code" in app.lang_keys else -1
+                if app.mode == MODE_CODE and code_idx >= 0:
+                    app.lang_idx = code_idx
+                elif app.lang_keys[app.lang_idx] == "code":
                     app.lang_idx = 0
             elif app.menu_row == 1:
                 # Sub-option
@@ -282,7 +284,7 @@ def handle_menu_input(key, app):
             elif app.menu_row == 2:
                 # Language
                 app.lang_idx = (app.lang_idx + delta) % len(app.lang_keys)
-                if app.lang_idx == 2:
+                if app.lang_keys[app.lang_idx] == "code":
                     app.mode = MODE_CODE
                 elif app.mode == MODE_CODE:
                     app.mode = MODE_TIME

@@ -86,16 +86,22 @@ class TypingEngine:
             # For time mode, generate plenty of words
             self.words = self._generate_words(200)
 
-        # Build the flat target string
+        # Build the flat target string — flatten newlines to spaces
+        # so code snippets don't break word-wrapping
+        cleaned = [w.replace("\n", " ") for w in self.words]
         if self.mode == MODE_CODE:
-            self.target_text = "  ".join(self.words)
+            self.target_text = "  ".join(cleaned)
         else:
-            self.target_text = " ".join(self.words)
+            self.target_text = " ".join(cleaned)
 
     def count_completed_words(self):
-        """Count how many complete words have been typed."""
+        """Count how many fully completed words have been typed.
+
+        A word is only considered complete when the space after it has been typed.
+        This prevents the test from ending before the last word is finished.
+        """
         typed_text = "".join(self.input_chars[:self.char_idx])
-        return typed_text.count(" ") + (1 if self.char_idx > 0 else 0)
+        return typed_text.count(" ")
 
     def handle_input(self, key):
         """Process a single keystroke during the test.
