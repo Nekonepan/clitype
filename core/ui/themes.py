@@ -9,7 +9,7 @@ THEMES = {
     "dark": {
         "name": "Dark",
         "bg": (30, 30, 46),
-        "fg_dim": (88, 91, 112),
+        "fg_dim": (138, 142, 164),
         "fg_active": (205, 214, 244),
         "fg_correct": (166, 227, 161),
         "fg_incorrect": (243, 139, 168),
@@ -24,7 +24,7 @@ THEMES = {
     "nord": {
         "name": "Nord",
         "bg": (46, 52, 64),
-        "fg_dim": (76, 86, 106),
+        "fg_dim": (126, 136, 156),
         "fg_active": (216, 222, 233),
         "fg_correct": (163, 190, 140),
         "fg_incorrect": (191, 97, 106),
@@ -39,7 +39,7 @@ THEMES = {
     "onedark": {
         "name": "One Dark",
         "bg": (40, 44, 52),
-        "fg_dim": (92, 99, 112),
+        "fg_dim": (132, 139, 152),
         "fg_active": (171, 178, 191),
         "fg_correct": (152, 195, 121),
         "fg_incorrect": (224, 108, 117),
@@ -54,7 +54,7 @@ THEMES = {
     "neon": {
         "name": "Neon Cyan",
         "bg": (13, 17, 23),
-        "fg_dim": (48, 54, 61),
+        "fg_dim": (118, 124, 131),
         "fg_active": (201, 209, 217),
         "fg_correct": (63, 185, 80),
         "fg_incorrect": (248, 81, 73),
@@ -69,7 +69,7 @@ THEMES = {
     "matrix": {
         "name": "Matrix",
         "bg": (0, 10, 2),
-        "fg_dim": (0, 60, 15),
+        "fg_dim": (0, 140, 45),
         "fg_active": (0, 200, 50),
         "fg_correct": (0, 255, 65),
         "fg_incorrect": (255, 50, 50),
@@ -84,7 +84,7 @@ THEMES = {
     "sepia": {
         "name": "Retro Sepia",
         "bg": (50, 40, 30),
-        "fg_dim": (120, 100, 80),
+        "fg_dim": (160, 140, 120),
         "fg_active": (230, 210, 180),
         "fg_correct": (180, 200, 120),
         "fg_incorrect": (220, 100, 80),
