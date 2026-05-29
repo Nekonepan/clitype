@@ -51,12 +51,9 @@ class Renderer:
 
     def fill_background(self):
         """Fill the entire screen with the theme background color."""
-        rows, cols = get_terminal_size()
-        line = self._bg() + " " * cols
-        for r in range(1, rows + 1):
-            move_to(r, 1)
-            sys.stdout.write(line)
-        sys.stdout.flush()
+        # Use standard ANSI sequence to clear screen with current background color
+        # Do not flush here; let the caller flush after drawing the full frame to prevent flickering.
+        sys.stdout.write(self._bg() + "\033[2J\033[H")
 
     def draw_centered(self, row, text, fg_key="fg_active", bold_on=False):
         """Draw text horizontally centered on a row, padded to full width."""
@@ -76,6 +73,40 @@ class Renderer:
             + prefix + text + reset()
             + bg_str + " " * pad_right + reset()
         )
+
+    def draw_rainbow_centered(self, row, text, time_offset):
+        """Draw text centered with a smooth horizontal rainbow wave effect."""
+        import colorsys
+        
+        _, cols = get_terminal_size()
+        bg_str = self._bg()
+        
+        # Calculate padding based on visible length (for raw text)
+        visible_len = len(text)  # Assuming no ANSI codes in rainbow input
+        col = max(1, (cols - visible_len) // 2 + 1)
+        pad_left = col - 1
+        pad_right = max(0, cols - pad_left - visible_len)
+        
+        move_to(row, 1)
+        sys.stdout.write(bg_str + " " * pad_left)
+        
+        # Wave parameters (slow and smooth horizontal wave)
+        wave_freq = 0.015  # How wide the color bands are
+        speed = 0.15       # Animation speed (hue cycles per second)
+
+        for i, char in enumerate(text):
+            if char.isspace():
+                sys.stdout.write(bg_str + char)
+                continue
+                
+            hue = (i * wave_freq - time_offset * speed) % 1.0
+            r, g, b = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
+            r_int, g_int, b_int = int(r * 255), int(g * 255), int(b * 255)
+            
+            # Combine background, rainbow foreground, and bold text
+            sys.stdout.write(bg_str + fg(r_int, g_int, b_int) + bold() + char + reset() + bg_str)
+            
+        sys.stdout.write(bg_str + " " * pad_right + reset())
 
     def draw_at(self, row, col, text, fg_key="fg_active", bold_on=False):
         """Draw text at an exact row/col position."""

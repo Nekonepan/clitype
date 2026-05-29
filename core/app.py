@@ -65,7 +65,7 @@ class CliType:
                     if self.state == STATE_MENU:
                         hide_cursor()
                         draw_menu(self.renderer, self)
-                        key = term.read_key()
+                        key = term.read_key(timeout=0.05)
                         running = handle_menu_input(key, self)
 
                     elif self.state == STATE_TEST:

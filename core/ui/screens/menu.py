@@ -33,8 +33,9 @@ def draw_menu(renderer, app):
 
     # Draw logo
     logo_start_row = max(2, rows // 2 - 12)
+    import time
     for i, line in enumerate(LOGO):
-        renderer.draw_centered(logo_start_row + i, line, "accent", bold_on=True)
+        renderer.draw_rainbow_centered(logo_start_row + i, line, time.time())
 
     # Version
     ver_row = logo_start_row + len(LOGO) + 1
@@ -257,6 +258,9 @@ def draw_menu(renderer, app):
 
 def handle_menu_input(key, app):
     """Handle keyboard navigation on the hierarchical select menu."""
+    if key is None:
+        return True
+
     if app.in_option_select:
         # State: Submenu Active (Selecting Option Value)
         if key in ("\r", "\n", "ESC"):
